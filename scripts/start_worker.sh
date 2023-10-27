@@ -1,0 +1,1 @@
+pipenv run celery -A $WORKER_APP -b 'amqp://rabbitmq' worker --loglevel=INFO

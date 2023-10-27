@@ -1,0 +1,21 @@
+FROM python:3.12-bullseye
+
+ENV PYTHONUNBUFFERED 1
+
+RUN apt-get update \
+  # dependencies for building Python packages
+  && apt-get install -y build-essential \
+  && pip install pipenv \
+  # cleaning up unused files
+  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY Pipfile /Pipfile
+COPY Pipfile.lock /Pipfile.lock
+COPY contract_red_flags /contract_red_flags
+RUN pipenv install
+
+COPY scripts/start_worker.sh /start_worker.sh
+RUN chmod +x /start_worker.sh
+
+ENTRYPOINT /start_worker.sh

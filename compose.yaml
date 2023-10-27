@@ -1,0 +1,23 @@
+services:
+  rabbitmq:
+    image: "rabbitmq"
+    ports:
+     - "5672:5672"
+  analyze-worker:
+    build:
+      context: .
+      dockerfile: build/docker/worker_dockerfile
+    image: worker
+    depends_on:
+      - rabbitmq
+    environment:
+      - WORKER_APP=contract_red_flags.tasks.analyze
+  api:
+    build:
+      context: .
+      dockerfile: build/docker/api_dockerfile
+    image: api
+    depends_on:
+      - rabbitmq
+    ports:
+     - "8000:8000"
