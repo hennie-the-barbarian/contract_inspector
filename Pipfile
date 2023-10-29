@@ -12,6 +12,7 @@ celery = "*"
 python-multipart = "*"
 azure-storage-blob = "*"
 azure-identity = "*"
+pydantic-settings = "*"
 
 [dev-packages]
 httpx = "*"

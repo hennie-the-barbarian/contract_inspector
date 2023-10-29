@@ -2,7 +2,13 @@ services:
   rabbitmq:
     image: "rabbitmq"
     ports:
-     - "5672:5672"
+      - "5672:5672"
+  azurite:
+    image: "mcr.microsoft.com/azure-storage/azurite"
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
   analyze-worker:
     build:
       context: .
@@ -12,6 +18,7 @@ services:
       - rabbitmq
     environment:
       - WORKER_APP=contract_red_flags.tasks.analyze
+      - CELERY_BROKER=amqp://rabbitmq
   api:
     build:
       context: .
@@ -21,3 +28,5 @@ services:
       - rabbitmq
     ports:
      - "8000:8000"
+    environment:
+      - CELERY_BROKER=amqp://rabbitmq

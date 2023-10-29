@@ -12,6 +12,3 @@ app.conf.update(
     result_expires=3600,
 )
 
-@app.task
-def upload_file(filename):
-    return True
