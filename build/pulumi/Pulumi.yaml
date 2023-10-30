@@ -1,0 +1,6 @@
+name: contract-inspector
+runtime: 
+  name: python
+  options:
+    virtualenv: venv
+description: Contract-inspector pulumi iaas
