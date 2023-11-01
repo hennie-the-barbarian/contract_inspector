@@ -19,6 +19,7 @@ services:
     environment:
       - WORKER_APP=contract_red_flags.tasks.analyze
       - CELERY_BROKER=amqp://rabbitmq
+      - CELERY_RESULT_BACKEND=rpc://
   api:
     build:
       context: .
@@ -30,3 +31,4 @@ services:
      - "8000:8000"
     environment:
       - CELERY_BROKER=amqp://rabbitmq
+      - CELERY_RESULT_BACKEND=rpc:// 

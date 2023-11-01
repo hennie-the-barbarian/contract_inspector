@@ -18,7 +18,6 @@ app.conf.update(
 
 @dataclass
 class ContractAnalysis:
-    """Class for keeping track of an item in inventory."""
     found: bool
     link: str
     locations: list[list[int]]
@@ -36,25 +35,21 @@ class BindingArbitrationAnalyzer(ContractAnalyzer):
         super().__init__()
 
     regex = re.compile(r'[bB]inding [aA]rbitration')
-    def match_to_analysis(self, match):
-        analysis = ContractAnalysis(
-            True,
-            self.link,
-            match.span(),
-            self.label
-        )
-        return analysis
-
     def analyze_contract(self, contract):
         regex_res = self.regex.finditer(contract)
-        analysis = [self.match_to_analysis(match) for match in regex_res]
+        analysis = ContractAnalysis(
+            found = True if regex_res else False,
+            link = self.link if regex_res else None,
+            locations = [[match.span()] for match in regex_res],
+            label = self.label
+        )
         return analysis
 
 @app.task
 def analyze_text(contract_text):
     binding_arbitration_analyzer = BindingArbitrationAnalyzer()
     binding_arbitration = binding_arbitration_analyzer.analyze_contract(contract_text)
-    return [asdict(match) for match in binding_arbitration]
+    return asdict(binding_arbitration)
 
 ## Not implementing file-based analysis at first
 @app.task

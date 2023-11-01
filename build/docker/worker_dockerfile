@@ -13,9 +13,9 @@ RUN apt-get update \
 COPY Pipfile /Pipfile
 COPY Pipfile.lock /Pipfile.lock
 COPY contract_red_flags /contract_red_flags
-RUN pipenv install
+RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY scripts/start_worker.sh /start_worker.sh
 RUN chmod +x /start_worker.sh
 
-ENTRYPOINT /start_worker.sh
+CMD /start_worker.sh

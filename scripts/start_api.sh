@@ -1,1 +1,1 @@
-pipenv run uvicorn contract_red_flags.api.main:app --host 0.0.0.0
+uvicorn contract_red_flags.api.main:app --host 0.0.0.0

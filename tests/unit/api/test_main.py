@@ -52,7 +52,7 @@ def test_get_contract_analyze_body_job(async_result_mock):
         'result': {
             'found': True,
             'link': 'https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
-            'locations': [21, 40],
+            'locations': [[21, 40]],
             'label': 'Binding Arbitration'
         }
     }
@@ -60,7 +60,7 @@ def test_get_contract_analyze_body_job(async_result_mock):
     async_result_mock.return_value.get.return_value = {
         'found': True, 
         'link': 'https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
-        'locations': (21, 40), 
+        'locations': [(21, 40)],
         'label': 'Binding Arbitration'
     } 
     response = client.get("/contracts/analyze/body/job/42")

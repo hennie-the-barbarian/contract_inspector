@@ -13,7 +13,7 @@ RUN apt-get update \
 COPY Pipfile /Pipfile
 COPY Pipfile.lock /Pipfile.lock
 COPY contract_red_flags /contract_red_flags
-RUN pipenv install
+RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY scripts/start_api.sh /start_api.sh
 RUN chmod +x /start_api.sh

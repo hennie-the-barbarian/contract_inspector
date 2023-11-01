@@ -1,1 +1,1 @@
-pipenv run celery -A $WORKER_APP worker --loglevel=INFO
+celery -A $WORKER_APP worker --loglevel=INFO

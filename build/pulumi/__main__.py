@@ -5,6 +5,7 @@ from pulumi_azure_native import containerregistry
 from pulumi_azure_native import operationalinsights
 from pulumi_azure_native import resources
 from pulumi_azure_native import app
+from pulumi_azure_native import servicebus
 import pulumi_docker as docker
 
 app_path = "../.."
@@ -29,6 +30,38 @@ workspace_shared_keys = pulumi.Output.all(resource_group.name, workspace.name) \
         resource_group_name=args[0],
         workspace_name=args[1]
     ))
+
+namespace = servicebus.Namespace(
+    "namespace",
+    location="North Central US",
+    namespace_name="contract-inspector",
+    resource_group_name=resource_group.name,
+)
+
+namespace_authorization_rule = servicebus.NamespaceAuthorizationRule(
+    "namespaceAuthorizationRule",
+    authorization_rule_name="contract-inspector-broker-sas",
+    namespace_name=namespace.name,
+    resource_group_name=resource_group.name,
+    rights=[
+        "Manage",
+        "Listen",
+        "Send"
+    ]
+)
+
+servicebus_sas_keys = servicebus.list_namespace_keys(
+    authorization_rule_name = namespace_authorization_rule.name,
+    namespace_name=namespace.name,
+    resource_group_name=resource_group.name
+)
+
+celery_broker = pulumi.Output.format(
+    'azureservicebus://{}:{}@{}', 
+    servicebus_sas_keys.key_name, 
+    servicebus_sas_keys.primary_key,
+    namespace.name
+)
 
 managed_env = app.ManagedEnvironment("env",
     resource_group_name=resource_group.name,
@@ -55,10 +88,10 @@ admin_username = credentials.username
 admin_password = credentials.passwords[0]["value"]
 
 custom_image = "contract-inspector"
-my_image = docker.Image(
-    custom_image,
+api_image = docker.Image(
+    'contract-inspector-api',
     image_name=registry.login_server.apply(
-        lambda login_server: f"{login_server}/{custom_image}:v1.0.0"
+        lambda login_server: f"{login_server}/{custom_image}-api:v1.0.0"
     ),
     build=docker.DockerBuildArgs(
         context=app_path,
@@ -72,8 +105,25 @@ my_image = docker.Image(
     )
 )
 
-container_app = app.ContainerApp(
-    "app",
+worker_image = docker.Image(
+    'contract-inspector-worker',
+    image_name=registry.login_server.apply(
+        lambda login_server: f"{login_server}/{custom_image}-worker:v1.0.0"
+    ),
+    build=docker.DockerBuildArgs(
+        context=app_path,
+        platform="linux/amd64",
+        dockerfile="../docker/worker_dockerfile"
+    ),
+    registry=docker.RegistryArgs(
+        server=registry.login_server,
+        username=admin_username,
+        password=admin_password
+    )
+)
+
+api_app = app.ContainerApp(
+    "api",
     resource_group_name=resource_group.name,
     managed_environment_id=managed_env.id,
     configuration=app.ConfigurationArgs(
@@ -96,10 +146,60 @@ container_app = app.ContainerApp(
     template=app.TemplateArgs(
         containers = [
             app.ContainerArgs(
-                name="myapp",
-                image=my_image.image_name)
+                name="contract-inspector-api",
+                image=api_image.image_name,
+                env=[
+                    app.EnvironmentVarArgs(
+                        name='CELERY_BROKER',
+                        ### SAS Info in uri string is strictly needed
+                        ### Figure out how to get
+                        value=celery_broker
+                    )
+                ]
+            )
         ]
     )
 )
 
-pulumi.export("url", container_app.configuration.apply(lambda c: c.ingress).apply(lambda i: i.fqdn))
+worker_app = app.ContainerApp(
+    "worker",
+    resource_group_name=resource_group.name,
+    managed_environment_id=managed_env.id,
+    configuration=app.ConfigurationArgs(
+        registries=[
+            app.RegistryCredentialsArgs(
+                server=registry.login_server,
+                username=admin_username,
+                password_secret_ref="pwd")
+        ],
+        secrets=[
+            app.SecretArgs(
+                name="pwd",
+                value=admin_password)
+        ],
+    ),
+    template=app.TemplateArgs(
+        containers = [
+            app.ContainerArgs(
+                name="contract-inspector-worker",
+                image=api_image.image_name,
+                env=[
+                    app.EnvironmentVarArgs(
+                        name='WORKER_APP',
+                        value='contract_red_flags.tasks.analyze'
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='CELERY_BROKER',
+                        value=celery_broker
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='CELERY_RESULT_BACKEND',
+                        value=celery_broker
+                    )
+                ]
+            )
+        ]
+    )
+)
+
+pulumi.export("api", api_app.configuration.apply(lambda c: c.ingress).apply(lambda i: i.fqdn))

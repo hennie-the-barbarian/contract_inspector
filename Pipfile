@@ -6,13 +6,14 @@ name = "pypi"
 [packages]
 fastapi = "*"
 uvicorn = "*"
-pika = "*"
 pytest = "*"
 celery = "*"
 python-multipart = "*"
 azure-storage-blob = "*"
 azure-identity = "*"
 pydantic-settings = "*"
+azure-servicebus = "*"
+kombu = "*"
 
 [dev-packages]
 httpx = "*"
