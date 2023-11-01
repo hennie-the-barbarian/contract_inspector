@@ -62,6 +62,7 @@ celery_broker = pulumi.Output.format(
     servicebus_sas_keys.primary_key,
     namespace.name
 )
+celery_backend = 'rpc://'
 
 managed_env = app.ManagedEnvironment("env",
     resource_group_name=resource_group.name,
@@ -182,7 +183,7 @@ worker_app = app.ContainerApp(
         containers = [
             app.ContainerArgs(
                 name="contract-inspector-worker",
-                image=api_image.image_name,
+                image=worker_image.image_name,
                 env=[
                     app.EnvironmentVarArgs(
                         name='WORKER_APP',
@@ -194,12 +195,66 @@ worker_app = app.ContainerApp(
                     ),
                     app.EnvironmentVarArgs(
                         name='CELERY_RESULT_BACKEND',
-                        value=celery_broker
+                        value=celery_backend
                     )
                 ]
             )
-        ]
+        ],
+        scale=app.ScaleArgs(
+            min_replicas=1
+        )
     )
 )
+
+'''worker_job = app.Job(
+    "job",
+    configuration=azure_native.app.JobConfigurationResponseArgs(
+        event_trigger_config={
+            "parallelism": 4,
+            "replicaCompletionCount": 1,
+            "scale": {
+                "maxExecutions": 5,
+                "minExecutions": 1,
+                "pollingInterval": 40,
+                "rules": [app.JobScaleRuleArgs(
+                    metadata={
+                        "topicName": "my-topic",
+                    },
+                    name="contract-inspector-celery-queue-rule",
+                    type="azure-servicebus",
+                )],
+            },
+        },
+        replica_retry_limit=10,
+        replica_timeout=10,
+        trigger_type="Event",
+    ),
+    managed_environment_id=managed_env.id,
+    job_name="contract-inspector-worker-job",
+    location="North Central US",
+    resource_group_name=resource_group.name,
+    template=app.JobTemplateResponseArgs(
+        containers=[{
+            "image": "repo/testcontainerAppsJob0:v1",
+            "name": "testcontainerAppsJob0",
+            "probes": [{
+                "httpGet": {
+                    "httpHeaders": [
+                        app.ContainerAppProbeHttpHeadersArgs(
+                            name="Custom-Header",
+                            value="Awesome",
+                        )
+                    ],
+                    "path": "/health",
+                    "port": 8080,
+                },
+                "initialDelaySeconds": 5,
+                "periodSeconds": 3,
+                "type": "Liveness",
+            }],
+        }]
+    )
+)
+'''
 
 pulumi.export("api", api_app.configuration.apply(lambda c: c.ingress).apply(lambda i: i.fqdn))

@@ -1,1 +1,1 @@
-celery -A $WORKER_APP worker --loglevel=INFO
+celery -A contract_red_flags.tasks.analyze worker --loglevel=INFO
