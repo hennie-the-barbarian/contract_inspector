@@ -37,10 +37,11 @@ class BindingArbitrationAnalyzer(ContractAnalyzer):
     regex = re.compile(r'[bB]inding [aA]rbitration')
     def analyze_contract(self, contract):
         regex_res = self.regex.finditer(contract)
+        found_items = [[match.span()] for match in regex_res]
         analysis = ContractAnalysis(
-            found = True if regex_res else False,
-            link = self.link if regex_res else None,
-            locations = [[match.span()] for match in regex_res],
+            found = True if found_items else False,
+            link = self.link if found_items else None,
+            locations = found_items,
             label = self.label
         )
         return analysis
