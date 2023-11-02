@@ -69,11 +69,16 @@ function ContractToInspect() {
                 previous_index = highlight[1]
             }
         }
+        console.log(previous_index)
+        console.log(text.length)
         if (previous_index < text.length) {
-            highlighted_text.concat(
+            console.log("Need to concat end of string")
+            console.log(text.substring(previous_index))
+            highlighted_text = highlighted_text.concat(
                 text.substring(previous_index)
             )
         }
+        console.log(highlighted_text)
         return highlighted_text
     }
 
