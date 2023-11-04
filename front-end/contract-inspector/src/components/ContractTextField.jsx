@@ -8,8 +8,9 @@ function ContractToInspect() {
     async function getTaskResult(task) {
         var success = false
         while(!success) {
+            console.log(import.meta.env.VITE_APP_API_URL)
             const response = await fetch(
-                `http://localhost:8000/contracts/analyze/body/job/${task}`, 
+                `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body/job/${task}`, 
                 {
                     method: 'GET'
                 }
@@ -33,13 +34,13 @@ function ContractToInspect() {
 
         setContract(formJson.contract)
         // You can pass formData as a fetch body directly:
+        console.log("React app api url")
+        console.log(import.meta.env.VITE_APP_API_URL)
         const response = await fetch(
-            `http://localhost:8000/contracts/analyze/body`, 
+            `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body`, 
             {
                 method: 'PUT',
-                headers: { 
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formJson)
             }
         );
