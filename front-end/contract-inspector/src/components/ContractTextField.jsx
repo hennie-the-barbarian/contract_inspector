@@ -2,7 +2,6 @@ import { useState, createElement } from "react";
 
 function ContractToInspect() {
     const [analysisStarted, setAnalysisStarted] = useState(false)
-    const [analysisFinished, setAnalysisFinished] = useState(false)
     const [analysis, setAnalysis] = useState({})
     const [contract, setContract] = useState("")
     
@@ -10,7 +9,7 @@ function ContractToInspect() {
         var success = false
         while(!success) {
             const response = await fetch(
-                `${process.env.REACT_APP_API_URL}/contracts/analyze/body/job/${task}`, 
+                `http://localhost:8000/contracts/analyze/body/job/${task}`, 
                 {
                     method: 'GET'
                 }
@@ -35,10 +34,12 @@ function ContractToInspect() {
         setContract(formJson.contract)
         // You can pass formData as a fetch body directly:
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/contracts/analyze/body`, 
+            `http://localhost:8000/contracts/analyze/body`, 
             {
                 method: 'PUT',
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify(formJson)
             }
         );
