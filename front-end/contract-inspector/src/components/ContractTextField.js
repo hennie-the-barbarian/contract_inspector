@@ -8,18 +8,15 @@ function ContractToInspect() {
     
     async function getTaskResult(task) {
         var success = false
-        console.log('getTaskResult called')
         while(!success) {
-            console.log('entered while loop')
             const response = await fetch(
-                `http://localhost:8000/contracts/analyze/body/job/${task}`, 
+                `${process.env.REACT_APP_API_URL}/contracts/analyze/body/job/${task}`, 
                 {
                     method: 'GET'
                 }
             );
             let analysisResponse = await response.json()
-            console.log(analysisResponse)
-            if (analysisResponse.status != 'PENDING') {
+            if (analysisResponse.status !== 'PENDING') {
                 setAnalysis(analysisResponse.result)
                 break
             }
@@ -38,7 +35,7 @@ function ContractToInspect() {
         setContract(formJson.contract)
         // You can pass formData as a fetch body directly:
         const response = await fetch(
-            'http://localhost:8000/contracts/analyze/body', 
+            `${process.env.REACT_APP_API_URL}/contracts/analyze/body`, 
             {
                 method: 'PUT',
                 headers: { "Content-Type": "application/json" },
@@ -47,7 +44,6 @@ function ContractToInspect() {
         );
         let analysisResponse = await response.json()
 
-        console.log(analysisResponse)
         setAnalysisStarted(true)
         getTaskResult(analysisResponse.task_id)
     }
@@ -55,7 +51,6 @@ function ContractToInspect() {
     function highlight_text(text, highlight_ranges) {
         let highlighted_text = []
         let previous_index = 0
-        console.log(highlight_ranges)
         for (const highlight_range of highlight_ranges) {
             for (const highlight of highlight_range) {
                 highlighted_text = highlighted_text.concat(
@@ -69,16 +64,11 @@ function ContractToInspect() {
                 previous_index = highlight[1]
             }
         }
-        console.log(previous_index)
-        console.log(text.length)
         if (previous_index < text.length) {
-            console.log("Need to concat end of string")
-            console.log(text.substring(previous_index))
             highlighted_text = highlighted_text.concat(
                 text.substring(previous_index)
             )
         }
-        console.log(highlighted_text)
         return highlighted_text
     }
 
