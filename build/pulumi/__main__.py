@@ -265,7 +265,7 @@ worker_app = app.ContainerApp(
 
 front_end = web.StaticSite(
     "frontEnd",
-    branch="azure-static-web-app",
+    branch="main",
     build_properties=web.StaticSiteBuildPropertiesArgs(
         output_location="dist",
         app_location="/front-end/contract-inspector",
