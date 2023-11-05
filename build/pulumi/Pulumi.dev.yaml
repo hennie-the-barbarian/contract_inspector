@@ -1,2 +1,4 @@
 config:
   azure-native:location: northcentralus
+  contract-inspector:gh_repo_token:
+    secure: AAABADhOPHWRI9WyNBG1RvyMvMHmbvLCaS0ZD0wZNAlAvOvRsaTDV6fH7sQet5aUmKGhTKfpbu83RzwcBeXoKoadmu/gHPRP

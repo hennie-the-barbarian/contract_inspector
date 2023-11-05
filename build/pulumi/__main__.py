@@ -1,12 +1,17 @@
 # Copyright 2016-2021, Pulumi Corporation.  All rights reserved.
 
 import pulumi
-from pulumi_azure_native import containerregistry
-from pulumi_azure_native import operationalinsights
-from pulumi_azure_native import resources
-from pulumi_azure_native import app
-from pulumi_azure_native import servicebus
+from pulumi_azure_native import (
+    containerregistry, 
+    operationalinsights, 
+    resources,
+    app, 
+    servicebus,
+    web
+)
 import pulumi_docker as docker
+
+cfg = pulumi.Config()
 
 app_path = "../.."
 image_name = "contract-inspector"
@@ -256,5 +261,25 @@ worker_app = app.ContainerApp(
     )
 )
 '''
+
+
+front_end = web.StaticSite(
+    "frontEnd",
+    branch="azure-static-web-app",
+    build_properties=web.StaticSiteBuildPropertiesArgs(
+        output_location="dist",
+        app_location="/front-end/contract-inspector",
+        app_build_command="npm run build"
+    ),
+    location="Central US",
+    name="contractInspectorFrontEnd",
+    repository_url="https://github.com/hennie-the-barbarian/contract_inspector",
+    repository_token=cfg.require_secret("gh_repo_token"),
+    resource_group_name=resource_group.name,
+    sku=web.SkuDescriptionArgs(
+        name="Free",
+        tier="Free",
+    )
+)
 
 pulumi.export("api", api_app.configuration.apply(lambda c: c.ingress).apply(lambda i: i.fqdn))
