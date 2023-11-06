@@ -1,9 +1,11 @@
 import { useState, createElement } from "react";
+import 'ldrs/bouncy'
 
 function ContractToInspect() {
     const [analysisStarted, setAnalysisStarted] = useState(false)
     const [analysis, setAnalysis] = useState({})
     const [contract, setContract] = useState("")
+    const [analysisFinished, setAnlysisFinished] = useState(false)
     
     async function getTaskResult(task) {
         var success = false
@@ -17,6 +19,7 @@ function ContractToInspect() {
             );
             let analysisResponse = await response.json()
             if (analysisResponse.status !== 'PENDING') {
+                setAnlysisFinished(true)
                 setAnalysis(analysisResponse.result)
                 break
             }
@@ -75,25 +78,37 @@ function ContractToInspect() {
     }
 
     if (analysisStarted) {
-        if (analysis.found) {
-            return (
-                <div>
-                    <h2>Inspection results</h2>
-                    <h3>Your contract contains the following problematic clause types</h3>
-                    <ul>
-                        <li><a href={analysis.link}>{analysis.label}</a></li>
-                    </ul>
-                    <br />
-                    <h3>Instances in document</h3>
-                    {highlight_text(contract, analysis.locations)}
-                </div>
-            )
+        if (analysisFinished) {
+            if (analysis.found) {
+                return (
+                    <div>
+                        <h2>Inspection results</h2>
+                        <h3>Your contract contains the following problematic clause types</h3>
+                        <ul>
+                            <li><a href={analysis.link}>{analysis.label}</a></li>
+                        </ul>
+                        <br />
+                        <h3>Instances in document</h3>
+                        {highlight_text(contract, analysis.locations)}
+                    </div>
+                )
+            }
+            else {
+                return (
+                    <div>
+                        No obvious concerns. This doesn't mean you shouldn't be careful,
+                        just that contract inspector couldn't find anything problematic.
+                    </div>
+                )
+            }
         }
         else {
-            return (
+            return(
                 <div>
-                    No obvious concerns. This doesn't mean you shouldn't be careful,
-                    just that contract inspector couldn't find anything problematic.
+                    We've got our best robots inspecting your contract. Results incoming.
+                    <br />
+                    <br />
+                    <l-bouncy size="100" color="coral"></l-bouncy>
                 </div>
             )
         }
