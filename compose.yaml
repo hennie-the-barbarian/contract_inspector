@@ -31,4 +31,7 @@ services:
      - "8000:8000"
     environment:
       - CELERY_BROKER=amqp://rabbitmq
-      - CELERY_RESULT_BACKEND=rpc:// 
+      - CELERY_RESULT_BACKEND=rpc://
+    volumes:
+      - ./contract_red_flags:/contract_red_flags
+    env_file: .env.local

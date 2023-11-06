@@ -8,7 +8,8 @@ from pulumi_azure_native import (
     app, 
     servicebus,
     web,
-    network
+    network,
+    storage
 )
 import pulumi_docker as docker
 
@@ -315,6 +316,24 @@ record_set = network.RecordSet(
     cname_record=network.CnameRecordArgs(
         cname=api_app.configuration.ingress.fqdn
     )
+)
+
+storage_account = storage.StorageAccount(
+    "storageAccount",
+    resource_group_name=resource_group.name,
+    account_name="contractinspectorstorage",
+    kind="Storage",
+    location="northcentralus",
+    sku=storage.SkuArgs(
+        name="Standard_LRS",
+    ),
+)
+
+blob_container = storage.BlobContainer(
+    "contractsBlobContainer",
+    account_name=storage_account.name,
+    container_name="contracts-blob-container",
+    resource_group_name=resource_group.name,
 )
 
 pulumi.export("api", api_app.configuration.ingress.fqdn)

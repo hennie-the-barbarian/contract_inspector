@@ -1,2 +1,0 @@
-Endpoint=sb://contract-inspector.servicebus.windows.net/;SharedAccessKeyName=contract-inspector-broker-sas;SharedAccessKey=H5OQ1o4osAnyzVrJKV1ShTQ9Q4HwoQxgq+ASbBvs9DA=
-Endpoint=sb://contract-inspector.servicebus.windows.net/;SharedAccessKeyName=contract-inspector-queue;SharedAccessKey=CGWFaX/vOyodgNrAt9zs8ONEyr/GY5MQ7+ASbKzMxPk=;EntityPath=contract-inspector
