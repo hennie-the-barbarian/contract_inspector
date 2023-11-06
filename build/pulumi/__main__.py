@@ -7,7 +7,8 @@ from pulumi_azure_native import (
     resources,
     app, 
     servicebus,
-    web
+    web,
+    network
 )
 import pulumi_docker as docker
 
@@ -23,6 +24,13 @@ resource_group_name = "contract-inspector"
 
 resource_group = resources.ResourceGroup(resource_group_name)
 
+contract_inspector_zone = network.Zone(
+    "contract-inspector",
+    location="Global",
+    resource_group_name=resource_group.name,
+    zone_name="contract-inspector.com"
+)
+
 workspace = operationalinsights.Workspace(
     "loganalytics",
     resource_group_name=resource_group.name,
@@ -30,11 +38,10 @@ workspace = operationalinsights.Workspace(
     retention_in_days=30
 )
 
-workspace_shared_keys = pulumi.Output.all(resource_group.name, workspace.name) \
-    .apply(lambda args: operationalinsights.get_shared_keys(
-        resource_group_name=args[0],
-        workspace_name=args[1]
-    ))
+workspace_shared_keys = operationalinsights.get_shared_keys(
+    resource_group_name=resource_group.name,
+    workspace_name=workspace.name
+)
 
 namespace = servicebus.Namespace(
     "namespace",
@@ -69,15 +76,42 @@ celery_broker = pulumi.Output.format(
 )
 celery_backend = 'rpc://'
 
-managed_env = app.ManagedEnvironment("env",
+managed_env = app.ManagedEnvironment(
+    "env",
     resource_group_name=resource_group.name,
     app_logs_configuration=app.AppLogsConfigurationArgs(
         destination="log-analytics",
         log_analytics_configuration=app.LogAnalyticsConfigurationArgs(
             customer_id=workspace.customer_id,
-            shared_key=workspace_shared_keys.apply(lambda r: r.primary_shared_key)
+            shared_key=workspace_shared_keys.primary_shared_key
         )
     )
+)
+
+record_set = network.RecordSet(
+    resource_name="apiTXTRecord",
+    relative_record_set_name="asuid.api",
+    record_type="TXT",
+    resource_group_name=resource_group.name,
+    ttl=1,
+    zone_name=contract_inspector_zone.name,
+    txt_records=[network.TxtRecordArgs(
+        value=[
+            managed_env.custom_domain_configuration.custom_domain_verification_id,
+        ],
+    )],
+)
+
+record_set = network.RecordSet(
+    resource_name="apiARecord",
+    relative_record_set_name="*",
+    record_type="A",
+    resource_group_name=resource_group.name,
+    ttl=1,
+    zone_name=contract_inspector_zone.name,
+    a_records=[network.ARecordArgs(
+        ipv4_address=managed_env.static_ip,
+    )],
 )
 
 registry = containerregistry.Registry(
@@ -128,6 +162,19 @@ worker_image = docker.Image(
     )
 )
 
+managed_cert = app.ManagedCertificate(
+    "managed_cert",
+    environment_name="envd7ba10ff",
+    location="North Central US",
+    managed_certificate_name="api.contract-inspector.com-envd7ba1-231106000500",
+    properties=app.ManagedCertificatePropertiesArgs(
+        domain_control_validation="CNAME",
+        subject_name="api.contract-inspector.com",
+    ),
+    resource_group_name="contract-inspector19f4eb7e",
+    opts=pulumi.ResourceOptions(protect=True)
+)
+
 api_app = app.ContainerApp(
     "api",
     resource_group_name=resource_group.name,
@@ -135,7 +182,23 @@ api_app = app.ContainerApp(
     configuration=app.ConfigurationArgs(
         ingress=app.IngressArgs(
             external=True,
-            target_port=8000
+            target_port=8000,
+            allow_insecure=True,
+            cors_policy=app.CorsPolicyArgs(
+                allowed_methods=[
+                    "*"
+                ],
+                allowed_origins=[
+                    "https://contract-inspector.com",
+                    "https://www.contract-inspector.com",
+                ]
+            ),
+            custom_domains=[
+                app.CustomDomainArgs(
+                    certificate_id=managed_cert.id,
+                    name="api.contract-inspector.com",
+                )
+            ]
         ),
         registries=[
             app.RegistryCredentialsArgs(
@@ -211,58 +274,6 @@ worker_app = app.ContainerApp(
     )
 )
 
-'''worker_job = app.Job(
-    "job",
-    configuration=azure_native.app.JobConfigurationResponseArgs(
-        event_trigger_config={
-            "parallelism": 4,
-            "replicaCompletionCount": 1,
-            "scale": {
-                "maxExecutions": 5,
-                "minExecutions": 1,
-                "pollingInterval": 40,
-                "rules": [app.JobScaleRuleArgs(
-                    metadata={
-                        "topicName": "my-topic",
-                    },
-                    name="contract-inspector-celery-queue-rule",
-                    type="azure-servicebus",
-                )],
-            },
-        },
-        replica_retry_limit=10,
-        replica_timeout=10,
-        trigger_type="Event",
-    ),
-    managed_environment_id=managed_env.id,
-    job_name="contract-inspector-worker-job",
-    location="North Central US",
-    resource_group_name=resource_group.name,
-    template=app.JobTemplateResponseArgs(
-        containers=[{
-            "image": "repo/testcontainerAppsJob0:v1",
-            "name": "testcontainerAppsJob0",
-            "probes": [{
-                "httpGet": {
-                    "httpHeaders": [
-                        app.ContainerAppProbeHttpHeadersArgs(
-                            name="Custom-Header",
-                            value="Awesome",
-                        )
-                    ],
-                    "path": "/health",
-                    "port": 8080,
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 3,
-                "type": "Liveness",
-            }],
-        }]
-    )
-)
-'''
-
-
 front_end = web.StaticSite(
     "frontEnd",
     branch="main",
@@ -282,4 +293,29 @@ front_end = web.StaticSite(
     )
 )
 
-pulumi.export("api", api_app.configuration.apply(lambda c: c.ingress).apply(lambda i: i.fqdn))
+record_set = network.RecordSet(
+    resource_name="frontEndRecordSet",
+    relative_record_set_name="@",
+    record_type="A",
+    resource_group_name=resource_group.name,
+    ttl=3600,
+    zone_name=contract_inspector_zone.name,
+    target_resource=network.SubResourceArgs(
+        id=front_end.id
+    )
+)
+
+record_set = network.RecordSet(
+    resource_name="apiRecordSet",
+    relative_record_set_name="api",
+    record_type="CNAME",
+    resource_group_name=resource_group.name,
+    ttl=1,
+    zone_name=contract_inspector_zone.name,
+    cname_record=network.CnameRecordArgs(
+        cname=api_app.configuration.ingress.fqdn
+    )
+)
+
+pulumi.export("api", api_app.configuration.ingress.fqdn)
+pulumi.export("front-end", front_end.default_hostname)
