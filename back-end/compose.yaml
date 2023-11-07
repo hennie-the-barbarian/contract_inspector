@@ -9,7 +9,7 @@ services:
       - "10000:10000"
       - "10001:10001"
       - "10002:10002"
-  analyze-worker:
+  worker:
     build:
       context: .
       dockerfile: build/docker/worker_dockerfile

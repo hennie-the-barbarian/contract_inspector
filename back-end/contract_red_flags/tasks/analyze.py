@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 import re
 import os
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from contract_red_flags.api.settings import azure_settings
 
 broker = os.getenv('CELERY_BROKER',default='amqp://')
 backend = os.getenv('CELERY_BACKEND',default='rpc://')
@@ -54,7 +56,11 @@ def analyze_text(contract_text):
 
 ## Not implementing file-based analysis at first
 @app.task
-def analyze_file(contract_file):
+def analyze_file(contract_file_uuid):
+    ## this should kick off the azure OCR using the blob storage URL
+    ## send file off to azure OCR
+    ## send text from OCR to an analyze text task (chain tasks)
+    print("Returning from analyze_file task")
     return True
 
 if __name__ == '__main__':

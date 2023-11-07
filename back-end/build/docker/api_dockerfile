@@ -15,7 +15,7 @@ COPY Pipfile.lock /Pipfile.lock
 COPY contract_red_flags /contract_red_flags
 RUN pipenv install --system --deploy --ignore-pipfile
 
-COPY scripts/start_worker.sh /start_worker.sh
-RUN chmod +x /start_worker.sh
+COPY build/scripts/start_api.sh /start_api.sh
+RUN chmod +x /start_api.sh
 
-CMD /start_worker.sh
+CMD /start_api.sh

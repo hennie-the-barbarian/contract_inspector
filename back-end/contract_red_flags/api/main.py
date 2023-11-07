@@ -51,15 +51,12 @@ async def contract_analyze_body(contract: Contract):
 @app.get("/contracts/analyze/body/job/{id}")
 async def get_contract_analyze_body_job(id):
     result = AsyncResult(id)
-    print("AsyncResult")
-    print(result)
     result = dict_from_result(result)
-    print('DictFromResult')
-    print(result)
     return result
 
 @app.put("/contracts/analyze/file")
 async def contract_analyze_file(file: UploadFile):
+    print("Received analyze file request")
     file_uuid = upload_file(await file.read())
     task = analyze.analyze_file.delay(file_uuid)
     return {"task_id": task.id}
@@ -73,6 +70,7 @@ def upload_file(file):
         data=file,
         overwrite=True
     )
+    print("finished uploading blob")
     return file_uuid
 
 def dict_from_result(result):

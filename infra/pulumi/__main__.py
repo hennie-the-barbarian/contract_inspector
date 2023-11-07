@@ -16,7 +16,7 @@ import pulumi_docker as docker
 
 cfg = pulumi.Config()
 
-app_path = "../.."
+app_path = "../../back-end"
 image_name = "contract-inspector"
 image_tag = "latest"
 container_port = 80
@@ -138,7 +138,7 @@ api_image = docker.Image(
     build=docker.DockerBuildArgs(
         context=app_path,
         platform="linux/amd64",
-        dockerfile="../docker/api_dockerfile"
+        dockerfile="../../back-end/build/docker/api_dockerfile"
     ),
     registry=docker.RegistryArgs(
         server=registry.login_server,
@@ -155,7 +155,7 @@ worker_image = docker.Image(
     build=docker.DockerBuildArgs(
         context=app_path,
         platform="linux/amd64",
-        dockerfile="../docker/worker_dockerfile"
+        dockerfile="../../back-end/build/docker/worker_dockerfile"
     ),
     registry=docker.RegistryArgs(
         server=registry.login_server,

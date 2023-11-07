@@ -14,6 +14,7 @@ azure-identity = "*"
 pydantic-settings = "*"
 azure-servicebus = "*"
 kombu = "*"
+azure-ai-formrecognizer = "*"
 
 [dev-packages]
 httpx = "*"
