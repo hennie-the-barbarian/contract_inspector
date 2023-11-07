@@ -61,6 +61,12 @@ async def contract_analyze_file(file: UploadFile):
     task = analyze.analyze_file.delay(file_uuid)
     return {"task_id": task.id}
 
+@app.get("/contracts/analyze/file/job/{id}")
+async def get_contract_analyze_file_job(id):
+    result = AsyncResult(id)
+    result = dict_from_result(result)
+    return result
+
 def upload_file(file):
     blob_service_client = BlobServiceClient.from_connection_string(azure_settings.blob_connection_string)
     container_client = blob_service_client.get_container_client(container=azure_settings.blob_container)
@@ -70,7 +76,6 @@ def upload_file(file):
         data=file,
         overwrite=True
     )
-    print("finished uploading blob")
     return file_uuid
 
 def dict_from_result(result):
