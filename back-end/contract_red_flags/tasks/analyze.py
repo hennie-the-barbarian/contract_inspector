@@ -40,7 +40,7 @@ class BindingArbitrationAnalyzer(ContractAnalyzer):
     regex = re.compile(r'[bB]inding [aA]rbitration')
     def analyze_contract(self, contract):
         regex_res = self.regex.finditer(contract)
-        found_items = [[match.span()] for match in regex_res]
+        found_items = [match.span() for match in regex_res]
         analysis = ContractAnalysis(
             found = True if found_items else False,
             link = self.link if found_items else None,
@@ -53,9 +53,10 @@ class BindingArbitrationAnalyzer(ContractAnalyzer):
 def analyze_text(contract_text):
     binding_arbitration_analyzer = BindingArbitrationAnalyzer()
     binding_arbitration = binding_arbitration_analyzer.analyze_contract(contract_text)
+    print(binding_arbitration)
     return asdict(binding_arbitration)
 
-## Not implementing file-based analysis at first
+## Need to eventually remove magic strings from here
 @app.task
 def analyze_file(contract_file_uuid):
     endpoint = "https://westus.api.cognitive.microsoft.com/"
@@ -66,7 +67,6 @@ def analyze_file(contract_file_uuid):
         model_id="prebuilt-contract",
         document_url=document_url)
     result = poller.result()
-    print("Returning from analyze_file task")
     return analyze_text(result.content)
 
 if __name__ == '__main__':

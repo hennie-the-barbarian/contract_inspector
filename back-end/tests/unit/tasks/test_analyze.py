@@ -31,6 +31,27 @@ def test_analyze_text():
     )
     assert(analyze.analyze_text(test_text_long)==test_result_long)
 
-def test_analyze_file():
-    test_text = "Hello world!"
-    assert(analyze.analyze_file(test_text)==True)
+@patch('contract_red_flags.tasks.analyze.azure_settings')
+@patch('contract_red_flags.tasks.analyze.analyze_text')
+@patch('contract_red_flags.tasks.analyze.AzureKeyCredential')
+@patch('contract_red_flags.tasks.analyze.DocumentAnalysisClient')
+def test_analyze_file(
+    documentAnalysisClientPatch,
+    azureKeyCredentialPatch, 
+    analyzeTextPatch,
+    azureSettingsPatch):
+    test_uuid = '1234-1234-1234-ABCD'
+    test_key = 'abc123'
+    azureSettingsPatch.document_intelligence_key = test_key
+    result = analyze.analyze_file(test_uuid)
+    azureKeyCredentialPatch.assert_called_with(test_key)
+    documentAnalysisClientPatch.assert_called_with(
+        "https://westus.api.cognitive.microsoft.com/", 
+        azureKeyCredentialPatch())
+    documentAnalysisClientPatch().begin_analyze_document_from_url.assert_called_with(
+        model_id="prebuilt-contract",
+        document_url=f'https://contractinspectorstorage.blob.core.windows.net/contracts-blob-container/{test_uuid}'
+    )
+    assert(result == analyzeTextPatch(
+        documentAnalysisClientPatch().begin_analyze_document_from_url().result().content
+    ))

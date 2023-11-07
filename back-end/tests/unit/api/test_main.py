@@ -66,3 +66,26 @@ def test_get_contract_analyze_body_job(async_result_mock):
     response = client.get("/contracts/analyze/body/job/42")
     print(response.json())
     assert response.json() == expected_output
+
+@patch('contract_red_flags.api.main.AsyncResult')
+def test_get_contract_analyze_file_job(async_result_mock):
+    expected_output = {
+        'status': 'SUCCESS', 
+        'result': {
+            'found': True,
+            'link': 'https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
+            'locations': [[21, 40]],
+            'label': 'Binding Arbitration'
+        }
+    }
+    async_result_mock.return_value.status = "SUCCESS"
+    async_result_mock.return_value.get.return_value = {
+        'found': True, 
+        'link': 'https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
+        'locations': [(21, 40)],
+        'label': 'Binding Arbitration'
+    } 
+    response = client.get("/contracts/analyze/file/job/42")
+    print(response.json())
+    assert response.json() == expected_output
+
