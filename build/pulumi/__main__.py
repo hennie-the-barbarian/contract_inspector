@@ -9,7 +9,8 @@ from pulumi_azure_native import (
     servicebus,
     web,
     network,
-    storage
+    storage,
+    cognitiveservices
 )
 import pulumi_docker as docker
 
@@ -334,6 +335,21 @@ blob_container = storage.BlobContainer(
     account_name=storage_account.name,
     container_name="contracts-blob-container",
     resource_group_name=resource_group.name,
+)
+
+form_recognizer = cognitiveservices.Account(
+    "formRecognizer",
+    account_name="contractsFormRecognizer",
+    identity=cognitiveservices.IdentityArgs(
+        type=cognitiveservices.ResourceIdentityType.SYSTEM_ASSIGNED,
+    ),
+    kind="FormRecognizer",
+    location="West US",
+    properties=cognitiveservices.AccountPropertiesArgs(),
+    resource_group_name=resource_group.name,
+    sku=cognitiveservices.SkuArgs(
+        name="F0",
+    )
 )
 
 pulumi.export("api", api_app.configuration.ingress.fqdn)
