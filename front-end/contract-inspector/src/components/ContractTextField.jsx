@@ -30,15 +30,13 @@ function ContractToInspect() {
         // Prevent the browser from reloading the page
         e.preventDefault();
         // Read the form data
+        setAnalysisStarted(true)
         const form = e.target;
         const formData = new FormData(form);
         // Or you can work with it as a plain object:
         const formJson = Object.fromEntries(formData.entries());
 
         setContract(formJson.contract)
-        // You can pass formData as a fetch body directly:
-        console.log("React app api url")
-        console.log(import.meta.env.VITE_APP_API_URL)
         const response = await fetch(
             `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body`, 
             {

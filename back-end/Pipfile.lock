@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "69f5a287d1f588d382fd3225be7546424b6296353f5e5a28effeece3f9e5ecc8"
+            "sha256": "8d81d4d31bd64bebe05c267fb32bb085ab06f75657048d79a5224913c16bac9c"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.12"
+            "python_version": "3.11"
         },
         "sources": [
             {
@@ -42,12 +42,12 @@
         },
         "azure-ai-formrecognizer": {
             "hashes": [
-                "sha256:761612eb454eb866dc143281ad7ba3169e56f43f8f246b72c8429edd181e5e77",
-                "sha256:bd5f764cc438529589a4e7d2955a22a0883c7cdce291cf14a53a0d9079c3427b"
+                "sha256:064803e0885bbe0429d1d282fc400123a5fc7f3baebb7f6ce30456450c08085e",
+                "sha256:3ea6ab27536e05f7a52953c8884f9488b4015bfe8904c87a4b5a8961b0a73792"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.7'",
-            "version": "==3.3.1"
+            "version": "==3.3.2"
         },
         "azure-common": {
             "hashes": [
@@ -84,12 +84,12 @@
         },
         "azure-storage-blob": {
             "hashes": [
-                "sha256:c278dde2ac41857a68d615c9f2b36d894ba877a7e84d62795603c7e79d0bb5e9",
-                "sha256:d8ced0deee3367fa3d4f3d1a03cd9edadf4440c0a371f503d623fa6c807554ee"
+                "sha256:26c0a4320a34a3c2a1b74528ba6812ebcb632a04cd67b1c7377232c4b01a5897",
+                "sha256:7bbc2c9c16678f7a420367fef6b172ba8730a7e66df7f4d7a55d5b3c8216615b"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.7'",
-            "version": "==12.18.3"
+            "version": "==12.19.0"
         },
         "billiard": {
             "hashes": [
