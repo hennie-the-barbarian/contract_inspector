@@ -10,7 +10,6 @@ function ContractToInspect() {
     async function getTaskResult(task) {
         var success = false
         while(!success) {
-            console.log(import.meta.env.VITE_APP_API_URL)
             const response = await fetch(
                 `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body/job/${task}`, 
                 {
@@ -35,16 +34,29 @@ function ContractToInspect() {
         const formData = new FormData(form);
         // Or you can work with it as a plain object:
         const formJson = Object.fromEntries(formData.entries());
-
         setContract(formJson.contract)
-        const response = await fetch(
-            `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body`, 
-            {
-                method: 'PUT',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formJson)
-            }
-        );
+        let response = null
+        if (formJson.contract_file.size>0) {
+            const fileUpload = new FormData();
+            fileUpload.append("file", formData.get('contract_file'));
+            response = await fetch(
+                `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file`, 
+                {
+                    method: 'PUT',
+                    body: fileUpload
+                }
+            );
+        }
+        else {
+            response = await fetch(
+                `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body`, 
+                {
+                    method: 'PUT',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formJson)
+                }
+            );
+        }
         let analysisResponse = await response.json()
 
         setAnalysisStarted(true)
@@ -123,6 +135,10 @@ function ContractToInspect() {
                         cols={100}
                         defaultValue="Enter contract here"
                     />
+                    <br />
+                    Or upload a file
+                    <br />
+                    <input name="contract_file" type="file" />
                 </label>
                 <br />
                 <button type="submit">Inspect Contract</button>
