@@ -337,6 +337,13 @@ blob_container = storage.BlobContainer(
     resource_group_name=resource_group.name,
 )
 
+training_container = storage.BlobContainer(
+    "contractModelTrainingBlobContainer",
+    account_name=storage_account.name,
+    container_name="contracts-model-training-blob-container",
+    resource_group_name=resource_group.name,
+)
+
 form_recognizer = cognitiveservices.Account(
     "formRecognizer",
     account_name="contractsFormRecognizer",
@@ -344,11 +351,11 @@ form_recognizer = cognitiveservices.Account(
         type=cognitiveservices.ResourceIdentityType.SYSTEM_ASSIGNED,
     ),
     kind="FormRecognizer",
-    location="West US",
+    location="Central US",
     properties=cognitiveservices.AccountPropertiesArgs(),
     resource_group_name=resource_group.name,
     sku=cognitiveservices.SkuArgs(
-        name="F0",
+        name="S0",
     )
 )
 
