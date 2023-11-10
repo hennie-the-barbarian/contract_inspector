@@ -6,6 +6,7 @@ import os
 from contract_red_flags.api.settings import azure_settings
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
+from .contract_analyzers import ContractAnalyzer
 
 broker = os.getenv('CELERY_BROKER',default='amqp://')
 backend = os.getenv('CELERY_BACKEND',default='rpc://')
@@ -19,55 +20,28 @@ app.conf.update(
     result_expires=3600,
 )
 
-@dataclass
-class ContractAnalysis:
-    found: bool
-    link: str
-    locations: list[list[int]]
-    label: str
-
-class ContractAnalyzer(ABC):
-    @abstractmethod
-    def analyze_contract(self, contract):
-        return ContractAnalysis(None, None, None, None)
-
-class BindingArbitrationAnalyzer(ContractAnalyzer):
-    def __init__(self) -> None:
-        self.label = 'Binding Arbitration'
-        self.link = 'https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses'
-        super().__init__()
-
-    regex = re.compile(r'[bB]inding [aA]rbitration')
-    def analyze_contract(self, contract):
-        regex_res = self.regex.finditer(contract)
-        found_items = [match.span() for match in regex_res]
-        analysis = ContractAnalysis(
-            found = True if found_items else False,
-            link = self.link if found_items else None,
-            locations = found_items,
-            label = self.label
-        )
-        return analysis
-
 @app.task
 def analyze_text(contract_text):
-    binding_arbitration_analyzer = BindingArbitrationAnalyzer()
+    binding_arbitration_analyzer = ContractAnalyzer.analyzer_factory('rental-agreement')
     binding_arbitration = binding_arbitration_analyzer.analyze_contract(contract_text)
-    print(binding_arbitration)
     return asdict(binding_arbitration)
 
 ## Need to eventually remove magic strings from here
 @app.task
-def analyze_file(contract_file_uuid):
-    endpoint = "https://westus.api.cognitive.microsoft.com/"
+def analyze_file(contract_file_uuid, muni, contract_type):
+    endpoint = "https://centralus.api.cognitive.microsoft.com/"
     credential = AzureKeyCredential(azure_settings.document_intelligence_key)
     document_analysis_client = DocumentAnalysisClient(endpoint, credential)
-    document_url = f'https://contractinspectorstorage.blob.core.windows.net/contracts-blob-container/{contract_file_uuid}'
+    document_url = f'https://contractinspectorstorage.blob.core.windows.net/contracts-blob-container/{contract_type}/{muni}/{contract_file_uuid}'
     poller = document_analysis_client.begin_analyze_document_from_url(
-        model_id="prebuilt-contract",
-        document_url=document_url)
+        model_id=contract_type,
+        document_url=document_url
+    )
     result = poller.result()
-    return analyze_text(result.content)
+    contract_fields = result.to_dict()['documents'][0]['fields']
+    contract_text = result.content
+    rental_agreement_analyzer = ContractAnalyzer.analyzer_factory('rental-agreement').analyze_contract
+    return asdict(rental_agreement_analyzer(contract_text, contract_fields))
 
 if __name__ == '__main__':
     app.start()

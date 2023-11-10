@@ -23,24 +23,37 @@ def test_contract_analyze_body(analyze_mock):
 @patch('contract_red_flags.api.main.analyze')
 def test_contract_analyze_file(analyze_mock, upload_file_mock):
     test_string = b'Hello world!'
+    test_muni = 'minneapolis'
+    test_contract_type = 'rental-agreement'
     test_bytes = io.BytesIO(test_string)
     analyze_mock.analyze_file.delay.return_value.id = 42
-    response = client.put("/contracts/analyze/file",
-                          files={"file": ("test_file", test_bytes)})
+    response = client.put(
+        f"/contracts/analyze/file/{test_muni}/{test_contract_type}",
+        files={"file": ("test_file", test_bytes)})
     assert response.status_code == 200
     assert response.json() == {'task_id': 42}
-    upload_file_mock.assert_called_with(test_string)
+    upload_file_mock.assert_called_with(
+        test_string,
+        test_muni,
+        test_contract_type
+    )
 
 @patch('contract_red_flags.api.main.BlobServiceClient')
 @patch('contract_red_flags.api.main.uuid4')
 def test_upload_file(uuid4_mock, blob_service_client_mock):
     test_bytes = io.BytesIO(b'Hello world!')
     test_uuid = '12345678-1234-5678-1234-567812345678'
+    test_muni = 'minneapolis'
+    test_contract_type = 'rental-agreement'
     uuid4_mock.return_value = UUID(test_uuid)
-    file_uuid = main.upload_file(test_bytes)
+    file_uuid = main.upload_file(
+        test_bytes,
+        test_muni,
+        test_contract_type
+    )
     assert file_uuid == test_uuid
     blob_service_client_mock.from_connection_string().get_container_client().upload_blob.assert_called_with(
-        name=file_uuid,
+        name=f'{test_contract_type}/{test_muni}/{file_uuid}',
         data=test_bytes,
         overwrite=True
     )
