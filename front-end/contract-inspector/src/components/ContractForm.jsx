@@ -1,15 +1,50 @@
 import { useState, createElement } from "react";
-import 'ldrs/bouncy'
+import 'ldrs/bouncy';
+
+function ConcernsFound({label, concerns}) {
+    console.log("Concerns: ")
+    console.log(concerns)
+    const listItems = concerns.map(
+        concern => 
+            <li>
+                <h4>{concern.concern_name}</h4>
+                {concern.description}
+                <br />
+                <br />
+                Additional info
+                <br />
+                {concern.more_info}
+                <br />
+            </li>
+    )
+    console.log(listItems)
+    return (
+        <div>
+            <h3>{label}</h3>
+            <ul>
+                {listItems}
+            </ul>
+        </div>
+    )
+}
 
 function ContractToInspect() {
     const [analysisStarted, setAnalysisStarted] = useState(false)
     const [analysis, setAnalysis] = useState({})
     const [contract, setContract] = useState("")
     const [analysisFinished, setAnlysisFinished] = useState(false)
+    const municipalities = [
+        { value: 'minneapolis', label: 'Minneapolis, MN' }
+    ]
+    const contract_types = [
+        { value: 'rental_agreement', label: 'Rental Agreement' }
+    ]
     
     async function getTaskResult(task) {
         var success = false
-        while(!success) {
+        let sleep_length = 1000
+        while(!success && sleep_length < 120000) {
+            console.log(`current sleep length: ${sleep_length}`)
             const response = await fetch(
                 `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body/job/${task}`, 
                 {
@@ -20,8 +55,13 @@ function ContractToInspect() {
             if (analysisResponse.status !== 'PENDING') {
                 setAnlysisFinished(true)
                 setAnalysis(analysisResponse.result)
-                break
+                console.log(analysisResponse)
+                console.log(analysisResponse.result)
+                console.log(analysis)
+                success = true
             }
+            await new Promise(r => setTimeout(r, sleep_length));
+            sleep_length = sleep_length * 2
         }
     }
 
@@ -34,29 +74,18 @@ function ContractToInspect() {
         const formData = new FormData(form);
         // Or you can work with it as a plain object:
         const formJson = Object.fromEntries(formData.entries());
+        console.log(formJson)
         setContract(formJson.contract)
-        let response = null
-        if (formJson.contract_file.size>0) {
-            const fileUpload = new FormData();
-            fileUpload.append("file", formData.get('contract_file'));
-            response = await fetch(
-                `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file`, 
-                {
-                    method: 'PUT',
-                    body: fileUpload
-                }
-            );
-        }
-        else {
-            response = await fetch(
-                `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/body`, 
-                {
-                    method: 'PUT',
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(formJson)
-                }
-            );
-        }
+        const fileUpload = new FormData();
+        fileUpload.append("file", formData.get('contract_file'));
+        console.log(`${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file/${formJson.muni}/${formJson.contract_type}`)
+        let response = await fetch(
+            `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file/${formJson.muni}/${formJson.contract_type}`, 
+            {
+                method: 'PUT',
+                body: fileUpload
+            }
+        );
         let analysisResponse = await response.json()
 
         setAnalysisStarted(true)
@@ -89,17 +118,22 @@ function ContractToInspect() {
 
     if (analysisStarted) {
         if (analysisFinished) {
-            if (analysis.found) {
+            if (analysis.issues_found) {
                 return (
                     <div>
                         <h2>Inspection results</h2>
-                        <h3>Your contract contains the following problematic clause types</h3>
-                        <ul>
-                            <li><a href={analysis.link}>{analysis.label}</a></li>
-                        </ul>
-                        <br />
-                        <h3>Instances in document</h3>
-                        {highlight_text(contract, analysis.locations)}
+                        {   analysis.issues_info.ILLEGAL.length > 0  &&
+                            <ConcernsFound label='Potentially Illegal Clauses'
+                                           concerns={analysis.issues_info.ILLEGAL} />
+                        }
+                        {   analysis.issues_info.WARNING.length > 0  &&
+                            <ConcernsFound label='Concerning Clauses'
+                                           concerns={analysis.issues_info.WARNING} />
+                        }
+                        {   analysis.issues_info.INFORMATION.length > 0  &&
+                            <ConcernsFound label='Useful Information'
+                                           concerns={analysis.issues_info.INFORMATION} />
+                        }
                     </div>
                 )
             }
@@ -126,20 +160,26 @@ function ContractToInspect() {
     else {
         return(
             <form method="post" onSubmit={handleSubmit}>
-                <label>
-                    Enter contract to inspect:
-                    <br />
-                    <textarea 
-                        name="contract" 
-                        rows={12} 
-                        cols={100}
-                        defaultValue="Enter contract here"
-                    />
-                    <br />
-                    Or upload a file
-                    <br />
+                <br />
+                Municipality of the contract
+                <br />
+                <select name="muni" id="muni">
+                    <option value="minneapolis">Minneapolis, MN</option>
+                </select>
+                <br />
+                <br />
+                Type of contract
+                <br />
+                <select name="contract_type" id="contract_type">
+                    <option value="rental-agreement">Rental Agreement</option>
+                </select>
+                <br />
+                <br />
+                Contract to inspect
+                <br />
+                <div>
                     <input name="contract_file" type="file" />
-                </label>
+                </div>
                 <br />
                 <button type="submit">Inspect Contract</button>
             </form>

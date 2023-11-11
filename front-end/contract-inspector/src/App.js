@@ -1,6 +1,6 @@
 import './App.css';
 import AppTitle from './components/AppTitle';
-import ContractToInspect from './components/ContractTextField';
+import ContractToInspect from './components/ContractForm';
 
 function App() {
   return (
