@@ -13,14 +13,18 @@ def test_analyze_text():
     test_result_short = asdict(    
         contract_analyzers.ContractAnalysis(
             issues_found=True, 
-            issues_info=[
-                contract_analyzers.ContractInfo(
-                    concern_name='Binding Arbitration', 
-                    description='Binding arbitration clauses are non-standard in this type of contract. Binding arbitration clauses mean that you are unable to sue the other person in a court over this agreement. The specifics of how the binding arbitration process works will vary depending on the specifics of the clause.', 
-                    more_info='https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
-                    concern_level=['WARNING', 'yellow']
-                )
-            ]
+            issues_info= {
+                'WARNING': [
+                        contract_analyzers.ContractInfo(
+                            concern_name='Binding Arbitration', 
+                            description='Binding arbitration clauses are non-standard in this type of contract. Binding arbitration clauses mean that you are unable to sue the other person in a court over this agreement. The specifics of how the binding arbitration process works will vary depending on the specifics of the clause.', 
+                            more_info='https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
+                            concern_level=['WARNING', 'yellow']
+                        )
+                ],
+                'INFORMATION': [],
+                'ILLEGAL': []
+            }
         )
     )
     assert(analyze.analyze_text(test_text_short)==test_result_short)
@@ -29,14 +33,18 @@ def test_analyze_text():
     test_result_long = asdict(
         contract_analyzers.ContractAnalysis(
             issues_found=True, 
-            issues_info=[
-                contract_analyzers.ContractInfo(
-                    concern_name='Binding Arbitration', 
-                    description='Binding arbitration clauses are non-standard in this type of contract. Binding arbitration clauses mean that you are unable to sue the other person in a court over this agreement. The specifics of how the binding arbitration process works will vary depending on the specifics of the clause.', 
-                    more_info='https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
-                    concern_level=['WARNING', 'yellow']
-                )
-            ]
+            issues_info={
+                'WARNING': [
+                        contract_analyzers.ContractInfo(
+                            concern_name='Binding Arbitration', 
+                            description='Binding arbitration clauses are non-standard in this type of contract. Binding arbitration clauses mean that you are unable to sue the other person in a court over this agreement. The specifics of how the binding arbitration process works will vary depending on the specifics of the clause.', 
+                            more_info='https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
+                            concern_level=['WARNING', 'yellow']
+                        )
+                ],
+                'INFORMATION': [],
+                'ILLEGAL': []
+            }
         )
     )
     assert(analyze.analyze_text(test_text_long)==test_result_long)
@@ -78,13 +86,17 @@ def test_analyze_file(
     )
     expected_output = contract_analyzers.ContractAnalysis(
         issues_found=True, 
-        issues_info=[
-            contract_analyzers.ContractInfo(
-                concern_name='Binding Arbitration', 
-                description='Binding arbitration clauses are non-standard in this type of contract. Binding arbitration clauses mean that you are unable to sue the other person in a court over this agreement. The specifics of how the binding arbitration process works will vary depending on the specifics of the clause.', 
-                more_info='https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
-                concern_level=['WARNING', 'yellow']
-            )
-        ]
+        issues_info={
+            'WARNING': [
+                    contract_analyzers.ContractInfo(
+                        concern_name='Binding Arbitration', 
+                        description='Binding arbitration clauses are non-standard in this type of contract. Binding arbitration clauses mean that you are unable to sue the other person in a court over this agreement. The specifics of how the binding arbitration process works will vary depending on the specifics of the clause.', 
+                        more_info='https://en.wikipedia.org/wiki/Arbitration_in_the_United_States#Arbitration_clauses', 
+                        concern_level=['WARNING', 'yellow']
+                    )
+            ],
+            'INFORMATION': [],
+            'ILLEGAL': []
+        }
     )
     assert(result == asdict(expected_output))

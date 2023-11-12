@@ -43,7 +43,7 @@ def test_minneapolis_security_deposit_analysis():
             f" You can request to pay $1 of your deposit over 3 months."
         ),
         more_info='https://www2.minneapolismn.gov/business-services/licenses-permits-inspections/rental-licenses/renter-protections/security-deposits/',
-        concern_level=['INFO', 'blue']
+        concern_level=['INFORMATION', 'blue']
     )
     high_depost_result = contract_analyzers.minneapolis_security_deposit_analysis(high_deposit_fields)
     assert(high_depost_result==high_deposit_expected_result)

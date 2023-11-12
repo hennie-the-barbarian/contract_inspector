@@ -12,7 +12,7 @@ class ContractInfo:
 @dataclass
 class ContractAnalysis:
     issues_found: bool
-    issues_info: list[ContractInfo]
+    issues_info: dict[str, list[ContractInfo]]
 
 class ContractAnalyzer(ABC):
     @abstractmethod
@@ -101,7 +101,7 @@ def minneapolis_security_deposit_analysis(contract_fields, non_profit=False):
                 "Your deposit is more than 1/2 of your monthly rent."
                 f" You can request to pay ${int(over_50_perc)} of your deposit over 3 months."
             )
-            concern_level = ['INFO', 'blue']
+            concern_level = ['INFORMATION', 'blue']
         if deposit_rent_ratio > 1:
             description = (
                 "Your potential landlord is requesting an illegal amount of deposit."
