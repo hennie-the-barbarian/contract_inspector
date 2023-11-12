@@ -225,6 +225,24 @@ api_app = app.ContainerApp(
                         ### SAS Info in uri string is strictly needed
                         ### Figure out how to get
                         value=celery_broker
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='BLOB_CONNECTION_STRING',
+                        ### SAS Info in uri string is strictly needed
+                        ### Figure out how to get
+                        value=cfg.require_secret("blob-connection-string")
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='BLOB_CONTAINER',
+                        ### SAS Info in uri string is strictly needed
+                        ### Figure out how to get
+                        value='contracts-blob-container'
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='DOCUMENT_INTELLIGENCE_KEY',
+                        ### SAS Info in uri string is strictly needed
+                        ### Figure out how to get
+                        value=cfg.require_secret("document-intelligence-key")
                     )
                 ]
             )
@@ -266,6 +284,24 @@ worker_app = app.ContainerApp(
                     app.EnvironmentVarArgs(
                         name='CELERY_RESULT_BACKEND',
                         value=celery_backend
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='BLOB_CONNECTION_STRING',
+                        ### SAS Info in uri string is strictly needed
+                        ### Figure out how to get
+                        value=cfg.require_secret("blob-connection-string")
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='BLOB_CONTAINER',
+                        ### SAS Info in uri string is strictly needed
+                        ### Figure out how to get
+                        value='contracts-blob-container'
+                    ),
+                    app.EnvironmentVarArgs(
+                        name='DOCUMENT_INTELLIGENCE_KEY',
+                        ### SAS Info in uri string is strictly needed
+                        ### Figure out how to get
+                        value=cfg.require_secret("document-intelligence-key")
                     )
                 ]
             )

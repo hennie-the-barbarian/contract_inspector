@@ -1,4 +1,8 @@
 config:
   azure-native:location: northcentralus
+  contract-inspector:blob-connection-string:
+    secure: AAABAK32ETh/TrOmfol3mw60ymXerh2rxgM0VsOYVVnIr8RSSjPyhWOoLPbRf0oKVvwSym7RA9/oETFfXZm1L0E86wdLQs/Xfu4hn9OefQJOxk0JqdtriONhLi6FiRuBsoQCNYgyT20SJQVCDXS4N3tA9r/wLM4phyD2gqQOAZcjkpzx+099SjrmkgvmAcG81XfigWu2jsFvM+SehHCmvq5RvHAGV6hdJiyGzx/4jVh0OHce6/+wkwJb+kkWzGAbSwsrLmVN8Mn2sWn+Tpmf422HuEep995ykH0Lh/IJ9zdBL7/EfDwq
+  contract-inspector:document-intelligence-key:
+    secure: AAABANZKsAHo0cuRIo8MfV0UE+2wsxnLMzKSdN6M4KkFfF84oiHcBHlgEPfg3wWMBJcK6o2m/Ru//aeOH6JHHw==
   contract-inspector:gh_repo_token:
     secure: AAABADhOPHWRI9WyNBG1RvyMvMHmbvLCaS0ZD0wZNAlAvOvRsaTDV6fH7sQet5aUmKGhTKfpbu83RzwcBeXoKoadmu/gHPRP
