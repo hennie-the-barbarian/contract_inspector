@@ -6,7 +6,7 @@ import os
 from contract_red_flags.api.settings import azure_settings
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.formrecognizer import DocumentAnalysisClient
-from .contract_analyzers import ContractAnalyzer
+from .contract_analyzers.base_classes import ContractAnalyzer
 
 broker = os.getenv('CELERY_BROKER',default='amqp://')
 backend = os.getenv('CELERY_BACKEND',default='rpc://')
@@ -22,9 +22,9 @@ app.conf.update(
 
 @app.task
 def analyze_text(contract_text):
-    binding_arbitration_analyzer = ContractAnalyzer.analyzer_factory('rental-agreement')
+    binding_arbitration_analyzer = ContractAnalyzer.analyzer_factory('rental-agreement', [])
     binding_arbitration = binding_arbitration_analyzer.analyze_contract(contract_text)
-    return asdict(binding_arbitration)
+    return binding_arbitration
 
 ## Need to eventually remove magic strings from here
 @app.task
@@ -40,8 +40,16 @@ def analyze_file(contract_file_uuid, muni, contract_type):
     result = poller.result()
     contract_fields = result.to_dict()['documents'][0]['fields']
     contract_text = result.content
-    rental_agreement_analyzer = ContractAnalyzer.analyzer_factory('rental-agreement').analyze_contract
-    return asdict(rental_agreement_analyzer(contract_text, contract_fields))
+    rental_agreement_analyzer = ContractAnalyzer.analyzer_factory(
+        'rental-agreement', 
+        [
+            'usa',
+            'minnesota',
+            'hennepin',
+            'minneapolis'
+        ]
+    ).analyze_contract
+    return rental_agreement_analyzer(contract_text, contract_fields)
 
 if __name__ == '__main__':
     app.start()

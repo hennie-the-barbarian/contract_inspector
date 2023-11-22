@@ -6,7 +6,7 @@ from dataclasses import asdict
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 import contract_red_flags.tasks.analyze as analyze
-import contract_red_flags.tasks.contract_analyzers as contract_analyzers
+import contract_red_flags.tasks.contract_analyzers.base_classes as contract_analyzers
 
 def test_binding_arbitration_check():
     test_contract = "Binding arbitration"

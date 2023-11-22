@@ -4,3 +4,6 @@ def is_txt(file):
         return True
     except:
         return False
+    
+def get_muni():
+    return "Minneapolis, MN"
