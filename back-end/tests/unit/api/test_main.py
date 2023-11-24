@@ -28,13 +28,12 @@ def test_contract_analyze_file(analyze_mock, upload_file_mock):
     test_bytes = io.BytesIO(test_string)
     analyze_mock.analyze_file.delay.return_value.id = 42
     response = client.put(
-        f"/contracts/analyze/file/{test_muni}/{test_contract_type}",
+        f"/contracts/analyze/file/{test_contract_type}",
         files={"file": ("test_file", test_bytes)})
     assert response.status_code == 200
     assert response.json() == {'task_id': 42}
     upload_file_mock.assert_called_with(
         test_string,
-        test_muni,
         test_contract_type
     )
 

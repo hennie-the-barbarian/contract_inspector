@@ -38,6 +38,7 @@ def test_analyze_text():
     )
     assert(analyze.analyze_text(test_text_long)==test_result_long)
 
+@patch('contract_red_flags.tasks.analyze.get_muni_list')
 @patch('contract_red_flags.tasks.analyze.azure_settings')
 @patch('contract_red_flags.tasks.analyze.analyze_text')
 @patch('contract_red_flags.tasks.analyze.AzureKeyCredential')
@@ -46,11 +47,17 @@ def test_analyze_file(
     documentAnalysisClientPatch,
     azureKeyCredentialPatch, 
     analyzeTextPatch,
-    azureSettingsPatch):
+    azureSettingsPatch,
+    getMuniPatch):
     test_uuid = '1234-1234-1234-ABCD'
     test_key = 'abc123'
-    test_muni = 'minneapolis'
     test_contract_type = 'rental-agreement'
+    getMuniPatch.return_value = [
+        'usa',
+        'minnesota',
+        'hennepin',
+        'minneapolis'
+    ]
     azureSettingsPatch.document_intelligence_key = test_key
     documentAnalysisClientPatch().begin_analyze_document_from_url().result().to_dict.return_value = {
         'documents': [
@@ -70,7 +77,7 @@ def test_analyze_file(
         azureKeyCredentialPatch())
     documentAnalysisClientPatch().begin_analyze_document_from_url.assert_called_with(
         model_id=test_contract_type,
-        document_url=f'https://contractinspectorstorage.blob.core.windows.net/contracts-blob-container/{test_contract_type}/{test_muni}/{test_uuid}'
+        document_url=f'https://contractinspectorstorage.blob.core.windows.net/contracts-blob-container/{test_contract_type}/{test_uuid}'
     )
     expected_output = contract_analyzers.ContractAnalysis(
         issues_found=True, 
