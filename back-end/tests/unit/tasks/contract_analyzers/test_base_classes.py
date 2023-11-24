@@ -45,6 +45,55 @@ def test_contractAnalysis():
         contract_analysis_b
     )
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(contract_analysis_a)
-    assert(False)
+def test_contract_analyzer():
+    factory_output_no_muni = base_classes.ContractAnalyzer.analyzer_factory(
+        'rental-agreement'
+    )(
+        "This text contains binding arbitration",
+        {
+            'rent':{
+                'value': '2000'
+            },
+            'security_deposit': {
+                'value': '3000'
+            }
+        }
+    )
+
+    factory_output_muni = base_classes.ContractAnalyzer.analyzer_factory(
+        'rental-agreement',
+        [
+            "usa",
+            "minnesota",
+            "hennepin",
+            "minneapolis"
+        ]
+    )(
+        "This text contains binding arbitration",
+        {
+            'rent':{
+                'value': '2000'
+            },
+            'security_deposit': {
+                'value': '3000'
+            }
+        }
+    )
+
+def test_get_analyzers():
+    analyzers_muni = base_classes.ContractAnalyzer.get_analyzers(
+        'rental-agreement',
+        [
+            "usa",
+            "minnesota",
+            "hennepin",
+            "minneapolis"
+        ]
+    )
+
+    analyzers_no_muni = base_classes.ContractAnalyzer.get_analyzers(
+        'rental-agreement',
+        []
+    )
+
+    assert(analyzers_muni!=analyzers_no_muni)

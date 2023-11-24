@@ -62,7 +62,6 @@ def test_analyze_file(
     documentAnalysisClientPatch().begin_analyze_document_from_url().result().content = "Binding arbitration"
     result = analyze.analyze_file(
         test_uuid,
-        test_muni,
         test_contract_type
     )
     azureKeyCredentialPatch.assert_called_with(test_key)
@@ -84,4 +83,6 @@ def test_analyze_file(
             )
         ]
     )
+    print(result)
+    print(expected_output)
     assert(result == expected_output)

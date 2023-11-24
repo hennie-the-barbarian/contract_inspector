@@ -6,20 +6,20 @@ from ....base_classes import (
     binding_arbitration_analysis
 )
 
-class RentalAgreementAnalyzer(ContractAnalyzer, simple_name='rental-agreement'):
+class MinneapolisRentalAgreementAnalyzer(
+    ContractAnalyzer, 
+    simple_name='rental-agreement',
+    dotted_muni='usa.minnesota.hennepin.minneapolis'
+):
     def __init__(self) -> None:
         super().__init__()
 
-    regex = re.compile(r'[bB]inding [aA]rbitration')
     def analyze_contract(self, contract, contract_fields={}):
         issues = {
             "INFORMATION": [],
             "WARNING": [],
             "ILLEGAL": []
         }
-        binding_arbitration = binding_arbitration_analysis(contract, is_unusual=True)
-        if binding_arbitration:
-            issues[binding_arbitration.concern_level[0]].append(binding_arbitration)
         if contract_fields:
             if 'rent' in contract_fields and 'security_deposit' in contract_fields:
                 minneapolis_security_deposit = minneapolis_security_deposit_analysis(contract_fields)
@@ -27,7 +27,9 @@ class RentalAgreementAnalyzer(ContractAnalyzer, simple_name='rental-agreement'):
                     issues[minneapolis_security_deposit.concern_level[0]].append(minneapolis_security_deposit)
         analysis = ContractAnalysis(
             issues_found = issues != [],
-            issues_info = issues
+            illegal_issues = issues['ILLEGAL'],
+            warning_issues = issues['WARNING'],
+            info_issues = issues['INFORMATION']
         )
         return analysis
     
@@ -63,4 +65,3 @@ def minneapolis_security_deposit_analysis(contract_fields, non_profit=False):
             more_info=link,
             description=description
         )
-    

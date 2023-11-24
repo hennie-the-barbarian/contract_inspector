@@ -4,13 +4,17 @@ from dataclasses import dataclass, asdict
 from abc import ABC, abstractmethod
 import re
 
+from collections.abc import Callable
+from functools import reduce
+
+from . import usa
+
 @dataclass
 class ContractInfo:
     concern_name: str
     description: str
     more_info: str
     concern_level: str
-
 
     def __json__(self) -> dict:
         return asdict(self)
@@ -67,14 +71,49 @@ class ContractAnalyzer(ABC):
     ## Whenever this is subclassed, add the subclass to factory_dictionary
     ## Along with its simple name
     factory_dictionary = {}
-    def __init_subclass__(cls, simple_name, **kwargs):
-        ContractAnalyzer.factory_dictionary[simple_name] = cls
+    def __init_subclass__(cls, simple_name, dotted_muni = None, **kwargs):
+        ## dotted_muni should be in the form 'nation.state.county.city'
+        ## or 'nation.state.cross_county_division'
+        ## This is to simplify object lookup
+        if dotted_muni:
+            ContractAnalyzer.factory_dictionary[
+                '{}.{}'.format(
+                    simple_name,
+                    dotted_muni
+                )
+            ] = cls
+        else:
+            ContractAnalyzer.factory_dictionary[simple_name] = cls
         super().__init_subclass__(**kwargs)
+
+    @staticmethod
+    def get_analyzers(contract_type, muni: list = []):
+        analyzers_list = []
+        try:
+            analyzers_list.append(ContractAnalyzer.factory_dictionary[contract_type])
+        except:
+            pass
+        current_jurisdiction = contract_type
+        for jurisdiction in muni:
+            current_jurisdiction += f'.{jurisdiction}'
+            try:
+                analyzers_list.append(ContractAnalyzer.factory_dictionary[current_jurisdiction])
+            except:
+                pass
+        return analyzers_list
 
     ## This allows us to get an instance of the subclass from a simple string
     @staticmethod
-    def analyzer_factory(contract_type, muni):
-        return ContractAnalyzer.factory_dictionary[contract_type]()
+    def analyzer_factory(contract_type, muni: list = []) -> Callable[str, dict]:
+        analyzers_list = [
+            analyzer().analyze_contract for analyzer in
+            ContractAnalyzer.get_analyzers(contract_type, muni)
+        ]
+        def generated_func(contract, contract_fields={}):
+            mapped_analyzers = [analyzer(contract, contract_fields) for analyzer in analyzers_list]
+            reduced_analyzers = reduce(lambda x, y: x+y, mapped_analyzers)
+            return reduced_analyzers
+        return generated_func
     
 class RentalAgreementAnalyzer(ContractAnalyzer, simple_name='rental-agreement'):
     def __init__(self) -> None:
@@ -90,11 +129,6 @@ class RentalAgreementAnalyzer(ContractAnalyzer, simple_name='rental-agreement'):
         binding_arbitration = binding_arbitration_analysis(contract, is_unusual=True)
         if binding_arbitration:
             issues[binding_arbitration.concern_level[0]].append(binding_arbitration)
-        if contract_fields:
-            if 'rent' in contract_fields and 'security_deposit' in contract_fields:
-                minneapolis_security_deposit = minneapolis_security_deposit_analysis(contract_fields)
-                if minneapolis_security_deposit:
-                    issues[minneapolis_security_deposit.concern_level[0]].append(minneapolis_security_deposit)
         analysis = ContractAnalysis(
             issues_found = issues != [],
             illegal_issues = issues['ILLEGAL'],
@@ -129,37 +163,3 @@ def binding_arbitration_analysis(contract, is_unusual=False):
         )
     else:
         return None
-    
-def minneapolis_security_deposit_analysis(contract_fields, non_profit=False):
-    label = 'Minneapolis Security Deposit'
-    link = 'https://www2.minneapolismn.gov/business-services/licenses-permits-inspections/rental-licenses/renter-protections/security-deposits/'
-    description = ""
-    concern_level = None
-    deposit = int(contract_fields['security_deposit']['value'].strip(' $'))
-    rent = int(contract_fields['rent']['value'].strip(' $'))
-    deposit_rent_ratio = deposit / rent
-
-    if non_profit==False:
-        if 1 > deposit_rent_ratio > .5:
-            over_50_perc = deposit - (rent/2)
-            description = (
-                "Your deposit is more than 1/2 of your monthly rent."
-                f" You can request to pay ${int(over_50_perc)} of your deposit over 3 months."
-            )
-            concern_level = ['INFORMATION', 'blue']
-        if deposit_rent_ratio > 1:
-            description = (
-                "Your potential landlord is requesting an illegal amount of deposit."
-                " Please speak with a tenants rights organization immediately."
-                " A good place to start: https://homelinemn.org/."
-            )
-            concern_level = ['ILLEGAL', 'red']
-        if deposit_rent_ratio <= .5:
-            return None
-        return ContractInfo(
-            concern_name=label,
-            concern_level=concern_level,
-            more_info=link,
-            description=description
-        )
-    

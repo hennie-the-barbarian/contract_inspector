@@ -46,10 +46,10 @@ async def get_contract_analyze_body_job(id):
     result = dict_from_result(result)
     return result
 
-@app.put("/contracts/analyze/file/{muni}/{contract_type}")
-async def contract_analyze_file(file: UploadFile, muni, contract_type):
-    file_uuid = upload_file(await file.read(), muni, contract_type)
-    task = analyze.analyze_file.delay(file_uuid, muni, contract_type)
+@app.put("/contracts/analyze/file/{contract_type}")
+async def contract_analyze_file(file: UploadFile, contract_type):
+    file_uuid = upload_file(await file.read(), contract_type)
+    task = analyze.analyze_file.delay(file_uuid, contract_type)
     return {"task_id": task.id}
 
 @app.get("/contracts/analyze/file/job/{id}")

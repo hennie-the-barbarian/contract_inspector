@@ -15,6 +15,8 @@ pydantic-settings = "*"
 azure-servicebus = "*"
 kombu = "*"
 azure-ai-formrecognizer = "*"
+azure-maps-search = "*"
+azure-mgmt-maps = "*"
 
 [dev-packages]
 httpx = "*"
