@@ -78,9 +78,9 @@ function ContractToInspect() {
         setContract(formJson.contract)
         const fileUpload = new FormData();
         fileUpload.append("file", formData.get('contract_file'));
-        console.log(`${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file/${formJson.muni}/${formJson.contract_type}`)
+        console.log(`${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file/${formJson.contract_type}`)
         let response = await fetch(
-            `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file/${formJson.muni}/${formJson.contract_type}`, 
+            `${import.meta.env.VITE_APP_API_URL}/contracts/analyze/file/${formJson.contract_type}`, 
             {
                 method: 'PUT',
                 body: fileUpload
@@ -122,17 +122,17 @@ function ContractToInspect() {
                 return (
                     <div>
                         <h2>Inspection results</h2>
-                        {   analysis.issues_info.ILLEGAL.length > 0  &&
+                        {   analysis.illegal_issues.length > 0  &&
                             <ConcernsFound label='Potentially Illegal Clauses'
-                                           concerns={analysis.issues_info.ILLEGAL} />
+                                           concerns={analysis.illegal_issues} />
                         }
-                        {   analysis.issues_info.WARNING.length > 0  &&
+                        {   analysis.warning_issues.length > 0  &&
                             <ConcernsFound label='Concerning Clauses'
-                                           concerns={analysis.issues_info.WARNING} />
+                                           concerns={analysis.warning_issues} />
                         }
-                        {   analysis.issues_info.INFORMATION.length > 0  &&
+                        {   analysis.info_issues.length > 0  &&
                             <ConcernsFound label='Useful Information'
-                                           concerns={analysis.issues_info.INFORMATION} />
+                                           concerns={analysis.info_issues} />
                         }
                     </div>
                 )
@@ -160,13 +160,6 @@ function ContractToInspect() {
     else {
         return(
             <form method="post" onSubmit={handleSubmit}>
-                <br />
-                Municipality of the contract
-                <br />
-                <select name="muni" id="muni">
-                    <option value="minneapolis">Minneapolis, MN</option>
-                </select>
-                <br />
                 <br />
                 Type of contract
                 <br />
