@@ -40,16 +40,9 @@ cases_container = storage.BlobContainer(
     resource_group_name=resource_group.name,
 )
 
-cases_search_container = storage.BlobContainer(
-    "casesSearchBlobContainer",
+jurisdictions_container = storage.BlobContainer(
+    "jurisdictionsBlobContainer",
     account_name=storage_account.name,
-    container_name="cases-search-blob-container",
-    resource_group_name=resource_group.name,
-)
-
-cases_projections_container = storage.BlobContainer(
-    "casesPorjectionsBlobContainer",
-    account_name=storage_account.name,
-    container_name="cases-projection-blob-container",
+    container_name="jurisdictions-blob-container",
     resource_group_name=resource_group.name,
 )
