@@ -56,14 +56,16 @@ async def contract_analyze_file(file: UploadFile, contract_type):
 async def get_contract_analyze_file_job(id):
     result = AsyncResult(id)
     result = dict_from_result(result)
+    print("Result from api")
+    print(result)
     return result
 
-def upload_file(file, muni, contract_type):
+def upload_file(file, contract_type):
     blob_service_client = BlobServiceClient.from_connection_string(azure_settings.blob_connection_string)
     container_client = blob_service_client.get_container_client(container=azure_settings.blob_container)
     file_uuid = str(uuid4())
     uploaded_blob = container_client.upload_blob(
-        name=f'{contract_type}/{muni}/{file_uuid}',
+        name=f'{contract_type}/{file_uuid}',
         data=file,
         overwrite=True
     )

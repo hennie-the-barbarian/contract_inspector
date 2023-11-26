@@ -69,7 +69,10 @@ def analyze_file(contract_file_uuid, contract_type):
         contract_type, 
         muni
     )
-    return rental_agreement_analyzer(contract_text, contract_fields)
+    analyzer_result = rental_agreement_analyzer(contract_text, contract_fields)
+    print("Return value from analyze.py")
+    print(analyzer_result)
+    return analyzer_result
 
 if __name__ == '__main__':
     app.start()

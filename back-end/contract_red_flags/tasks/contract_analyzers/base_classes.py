@@ -114,7 +114,7 @@ class ContractAnalyzer(ABC):
             reduced_analyzers = reduce(lambda x, y: x+y, mapped_analyzers)
             return reduced_analyzers
         return generated_func
-    
+
 class RentalAgreementAnalyzer(ContractAnalyzer, simple_name='rental-agreement'):
     def __init__(self) -> None:
         super().__init__()
